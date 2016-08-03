@@ -17,13 +17,19 @@ import (
 	"golang.org/x/image/math/fixed"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
+	"net/http"
+	"github.com/dimfeld/httptreemux"
 	//"image/color"
 	//"fmt"
 )
 
-func main() {
-	var text = string("OMG YEAH WHAT OMG YEAH WHAT")
-	reader, err := os.Open("avatar.png")
+func drawHandler(w http.ResponseWriter, r *http.Request) {
+	params := r.Context().Value(httptreemux.ParamsContextKey).(map[string]string)
+	text := params["text"]
+	title := "That's a Paddlin'"
+	log.Println(text)
+
+	reader, err := os.Open("tap.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +43,7 @@ func main() {
 	newimage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 	draw.Draw(newimage, newimage.Bounds(), originalimage, image.ZP, draw.Src)
 
-	fontfile, err := ioutil.ReadFile("/usr/share/fonts/TTF/LiberationSerif-Regular.ttf")
+	fontfile, err := ioutil.ReadFile("./DejaVuSansCondensed-Bold.ttf")
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -48,23 +54,86 @@ func main() {
 		return
 	}
 
-	d := &font.Drawer{
-		Dst: newimage,
-		Src: image.Black,
-		Face: truetype.NewFace(myFont, &truetype.Options{
-			Size: 20,
+	// First draw That's a Paddlin' at the bottom
+	fontSize := 70.0
+	face := truetype.NewFace(myFont, &truetype.Options{
+			Size: fontSize,
 			DPI: 72,
 			Hinting: font.HintingNone,
-		}),
+		})
+
+	d := &font.Drawer{
+		Dst: newimage,
+		Src: image.White,
+		Face: face,
+	}
+	d.Dot = fixed.Point26_6{
+		X: (fixed.I(originalimage.Bounds().Dx())  - d.MeasureString(title))  / 2,
+		Y: fixed.I(originalimage.Bounds().Max.Y - 20 ),
+	}
+	d.DrawString(title)
+	
+	//dy := int(math.Ceil(12 * 1.0 * 72 / 72))
+
+	dm := d.MeasureString(text)
+	textWidth := dm.Round()
+	imageWidth := b.Max.X
+	log.Println("textWidth")
+	log.Println(textWidth)
+	log.Println("imageWidth")
+	log.Println(imageWidth)
+		
+	for textWidth > imageWidth {
+		log.Println("Text too long")
+		fontSize = fontSize-1.0
+		face = truetype.NewFace(myFont, &truetype.Options{
+			Size: fontSize,
+			DPI: 72,
+			Hinting: font.HintingNone,
+		})
+		d = &font.Drawer{
+			Dst: newimage,
+			Src: image.White,
+			Face: face,
+		}		
+		dm = d.MeasureString(text)
+		textWidth = dm.Round()
+		log.Println("textWidth")
+		log.Println(textWidth)		
 	}
 
-	y := 10 + int(math.Ceil(12*72/72))
-	//dy := int(math.Ceil(12 * 1.0 * 72 / 72))
+	y := 10 + int(math.Ceil(fontSize*72/72))
+
 	d.Dot = fixed.Point26_6{
 		X: (fixed.I(originalimage.Bounds().Dx())  - d.MeasureString(text))  / 2,
 		Y: fixed.I(y),
 	}
 	d.DrawString(text)
+
+	//toimg, _ := os.Create("omg.png")
+	//defer toimg.Close()
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "image/png")
+
+
+	err = png.Encode(w, newimage)
+	if err != nil {
+		log.Println(err)
+	}
+
+}
+
+func main() {
+	r := httptreemux.New()
+	r.GET("/*text", drawHandler)
+	http.Handle("/", r)
+
+	http.ListenAndServe("127.0.0.1:3002", nil)
+
+
+	//var text = string("OMG YEAH WHAT OMG YEAH WHAT WHAT WHAT WHAT WHAT WHAT WHAT WHAT WHAT WHAT")
+
 
 	/*
 	y += dy
@@ -136,9 +205,6 @@ func main() {
     }
 	*/
 
-	toimg, _ := os.Create("omg.png")
-	defer toimg.Close()
 
-	png.Encode(toimg, newimage)
 
 }

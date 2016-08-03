@@ -18,6 +18,8 @@ import (
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 	"net/http"
+	"time"
+	"io"
 	"github.com/dimfeld/httptreemux"
 )
 
@@ -117,9 +119,46 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	//log.Println(r.URL.Path)
+	if r.URL.Path == "/favicon.ico" {
+		serveContent(w, r, "/favicon.ico")
+		return
+	} else if r.URL.Path == "/favicon.png" {
+		serveContent(w, r, "/favicon.png")
+		return
+	} else {
+		http.NotFound(w, r)
+		return
+	}
+
+}
+
+func robotsHandler(w http.ResponseWriter, r *http.Request) {
+	//log.Println(r.URL.Path)
+	if r.URL.Path == "/robots.txt" {
+		serveContent(w, r, "/robots.txt")
+		return
+	}
+	http.NotFound(w, r)
+}
+
+func serveContent(w http.ResponseWriter, r *http.Request, file string) {
+	f, err := http.Dir("./").Open(file)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	content := io.ReadSeeker(f)
+	http.ServeContent(w, r, file, time.Now(), content)
+	return
+}
+
 func main() {
 	r := httptreemux.New()
 	r.GET("/*text", drawHandler)
+	http.HandleFunc("/favicon.ico", faviconHandler)
+	http.HandleFunc("/favicon.png", faviconHandler)
 	http.Handle("/", r)
 
 	http.ListenAndServe("127.0.0.1:3002", nil)

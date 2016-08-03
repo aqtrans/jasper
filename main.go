@@ -154,9 +154,15 @@ func serveContent(w http.ResponseWriter, r *http.Request, file string) {
 	return
 }
 
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	serveContent(w, r, "/tap.png")
+	return
+}
+
 func main() {
 	r := httptreemux.New()
 	r.GET("/*text", drawHandler)
+	r.GET("/", indexHandler)
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/favicon.png", faviconHandler)
 	http.Handle("/", r)

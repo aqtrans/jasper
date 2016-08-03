@@ -75,4 +75,4 @@ deploy-it:
     - go build -o ./deploy/jasper
     - cp -r DejaVuSansCondensed-Bold.ttf tap.png deploy/
     - rsync -av --delete --exclude http.log deploy/ golang@localhost:/home/golang/jasper/
-    #- ssh golang@localhost sudo systemctl restart golang-wiki
+    - ssh golang@localhost sudo systemctl restart golang-jasper

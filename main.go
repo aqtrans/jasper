@@ -129,7 +129,7 @@ func main() {
 	r.GET("/*text", drawHandler)
 	http.Handle("/", r)
 
-	http.ListenAndServe("127.0.0.1:3002", nil)
+	http.ListenAndServe("0.0.0.0:3002", nil)
 
 
 	//var text = string("OMG YEAH WHAT OMG YEAH WHAT WHAT WHAT WHAT WHAT WHAT WHAT WHAT WHAT WHAT")

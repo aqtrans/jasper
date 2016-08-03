@@ -25,7 +25,8 @@ import (
 
 func drawHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.Context().Value(httptreemux.ParamsContextKey).(map[string]string)
-	text := params["text"]
+	ptext := params["text"]
+	text := ptext + "?"
 	title := "That's a Paddlin'"
 	log.Println(text)
 

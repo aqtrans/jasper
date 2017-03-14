@@ -7,21 +7,25 @@ package main
 
 import (
 	"image"
-	"github.com/golang/freetype"
 	"image/draw"
-	"os"
-	"log"
-	"io/ioutil"
 	"image/png"
-	"math"
-	"golang.org/x/image/math/fixed"
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font"
-	"net/http"
-	"time"
 	"io"
+	"io/ioutil"
+	"log"
+	"math"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/dimfeld/httptreemux"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
+	"github.com/muesli/cache2go"
+	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
+
+var cache *cache2go.CacheTable
 
 func drawHandler(w http.ResponseWriter, r *http.Request) {
 	params := r.Context().Value(httptreemux.ParamsContextKey).(map[string]string)
@@ -30,6 +34,22 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	text := ptext + "?"
 	title := "That's a Paddlin'"
 	log.Println(text)
+
+	// Try and find image in cache
+	cached, cacheErr := cache.Value(ptext)
+	if cacheErr == nil {
+		log.Println("cached image found: ", cached.Key(), cached.AccessCount())
+
+		w.WriteHeader(http.StatusOK)
+
+		w.Header().Set("Content-Type", "image/png")
+
+		encodeErr := png.Encode(w, cached.Data().(image.Image))
+		if encodeErr != nil {
+			log.Println(encodeErr)
+		}
+		return
+	}
 
 	reader, err := os.Open("tap.png")
 	if err != nil {
@@ -59,55 +79,58 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	// First draw That's a Paddlin' at the bottom
 	fontSize := 70.0
 	face := truetype.NewFace(myFont, &truetype.Options{
-			Size: fontSize,
-			DPI: 72,
-			Hinting: font.HintingNone,
-		})
+		Size:    fontSize,
+		DPI:     72,
+		Hinting: font.HintingNone,
+	})
 
 	d := &font.Drawer{
-		Dst: newimage,
-		Src: image.White,
+		Dst:  newimage,
+		Src:  image.White,
 		Face: face,
 	}
 	d.Dot = fixed.Point26_6{
-		X: (fixed.I(originalimage.Bounds().Dx())  - d.MeasureString(title))  / 2,
-		Y: fixed.I(originalimage.Bounds().Max.Y - 20 ),
+		X: (fixed.I(originalimage.Bounds().Dx()) - d.MeasureString(title)) / 2,
+		Y: fixed.I(originalimage.Bounds().Max.Y - 20),
 	}
 	d.DrawString(title)
-	
+
 	// Now we setup and draw the given text
 	dm := d.MeasureString(text)
 	textWidth := dm.Round()
 	imageWidth := b.Max.X
-	
-	// If the width of the text is wider than the image, 
+
+	// If the width of the text is wider than the image,
 	// we loop through shrinking the font size until the text fits
 	for textWidth > imageWidth {
 		log.Println("Text too long")
-		fontSize = fontSize-1.0
+		fontSize = fontSize - 1.0
 		face = truetype.NewFace(myFont, &truetype.Options{
-			Size: fontSize,
-			DPI: 72,
+			Size:    fontSize,
+			DPI:     72,
 			Hinting: font.HintingNone,
 		})
 		d = &font.Drawer{
-			Dst: newimage,
-			Src: image.White,
+			Dst:  newimage,
+			Src:  image.White,
 			Face: face,
-		}		
+		}
 		dm = d.MeasureString(text)
 		textWidth = dm.Round()
 		log.Println("textWidth")
-		log.Println(textWidth)		
+		log.Println(textWidth)
 	}
 
 	y := 10 + int(math.Ceil(fontSize*72/72))
 
 	d.Dot = fixed.Point26_6{
-		X: (fixed.I(originalimage.Bounds().Dx())  - d.MeasureString(text))  / 2,
+		X: (fixed.I(originalimage.Bounds().Dx()) - d.MeasureString(text)) / 2,
 		Y: fixed.I(y),
 	}
 	d.DrawString(text)
+
+	// Add element to cache
+	cache.Add(ptext, 24*time.Hour, newimage)
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "image/png")
@@ -160,6 +183,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Initialize the cache
+	cache = cache2go.Cache("tap")
+
 	r := httptreemux.New()
 	r.GET("/*text", drawHandler)
 	r.GET("/", indexHandler)

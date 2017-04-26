@@ -186,12 +186,12 @@ func main() {
 	// Initialize the cache
 	cache = cache2go.Cache("tap")
 
-	r := httptreemux.New()
+	r := httptreemux.NewContextMux()
 	r.GET("/*text", drawHandler)
 	r.GET("/", indexHandler)
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/favicon.png", faviconHandler)
 	http.Handle("/", r)
 
-	http.ListenAndServe("127.0.0.1:3002", nil)
+	http.ListenAndServe("0.0.0.0:5000", nil)
 }

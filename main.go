@@ -191,6 +191,9 @@ func main() {
 	r.GET("/", indexHandler)
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/favicon.png", faviconHandler)
+	http.HandleFunc("/robots.txt", http.NotFound)
+	http.HandleFunc("/blog", http.NotFound)
+	http.HandleFunc("/wp-login.php", http.NotFound)
 	http.Handle("/", r)
 
 	http.ListenAndServe("0.0.0.0:5000", nil)

@@ -23,6 +23,7 @@ import (
 	"github.com/muesli/cache2go"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
+	"strconv"
 )
 
 var cache *cache2go.CacheTable
@@ -182,11 +183,31 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	count := strconv.Itoa(cache.Count())
+	w.Write([]byte("<html><body>"))
+	w.Write([]byte("<p>Count: " + count + "</p>"))
+	w.Write([]byte("<table><thead>"))
+	w.Write([]byte("<tr><th>Title</th><th>Access Count</th></tr></thead><tbody>"))
+	mostAccessed := cache.MostAccessed(100)
+	for _, v := range mostAccessed {
+		w.Write([]byte("<tr>"))
+		w.Write([]byte("<td>" + v.Key().(string) + "</td>"))
+		w.Write([]byte("<td>" + strconv.FormatInt(v.AccessCount(), 10) + "</td>"))
+		w.Write([]byte("</tr>"))
+	}
+	w.Write([]byte("</tbody></table>"))
+	w.Write([]byte("</body></html>"))
+}
+
 func main() {
 	// Initialize the cache
 	cache = cache2go.Cache("tap")
 
 	r := httptreemux.NewContextMux()
+	r.GET("/_stats", statsHandler)
 	r.GET("/*text", drawHandler)
 	r.GET("/", indexHandler)
 	http.HandleFunc("/favicon.ico", faviconHandler)

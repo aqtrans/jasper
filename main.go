@@ -217,5 +217,5 @@ func main() {
 	http.HandleFunc("/wp-login.php", http.NotFound)
 	http.Handle("/", r)
 
-	http.ListenAndServe("0.0.0.0:5000", nil)
+	http.ListenAndServe("0.0.0.0:8002", nil)
 }

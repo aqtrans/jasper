@@ -59,11 +59,11 @@ deploy_staging:
   script:
     - apt-get update -y && apt-get install -y rsync
     # Remove previous backup of app
-    - ssh $DEV_SSH /bin/bash -c if [ -f $CI_PROJECT_NAME.old ]; then rm -rfv $CI_PROJECT_NAME.old; fi
+    - ssh $DEV_SSH /bin/bash -c if test -d $CI_PROJECT_NAME.old; then rm -rfv $CI_PROJECT_NAME.old; fi
     # Stop app, to release DB locks 
     - ssh $DEV_SSH sudo systemctl stop golang@$CI_PROJECT_NAME
     # Backup old app
-    - ssh $DEV_SSH /bin/bash -c if [ -f $CI_PROJECT_NAME ]; then mv -v $CI_PROJECT_NAME{,.old}; fi
+    - ssh $DEV_SSH /bin/bash -c if test -d $CI_PROJECT_NAME; then mv -v $CI_PROJECT_NAME{,.old}; fi
     # rsync to fresh folder
     - rsync -av --exclude data/ --exclude vendor/ --exclude http.log ./ $DEV_SSH:$CI_PROJECT_NAME
     # Restart app
@@ -81,11 +81,11 @@ deploy_prod:
     - echo $CI_PROJECT_NAME
     - apt-get update -y && apt-get install -y rsync
     # Remove previous backup of app
-    - ssh $PROD_SSH /bin/bash -c if [ -f $CI_PROJECT_NAME.old ]; then rm -rfv $CI_PROJECT_NAME.old; fi
+    - ssh $PROD_SSH /bin/bash -c if test -d $CI_PROJECT_NAME.old; then rm -rfv $CI_PROJECT_NAME.old; fi
     # Stop app, to release DB locks 
     - ssh $PROD_SSH sudo systemctl stop golang@$CI_PROJECT_NAME
     # Backup old app
-    - ssh $PROD_SSH /bin/bash -c if [ -f $CI_PROJECT_NAME ]; then mv -v $CI_PROJECT_NAME{,.old}; fi
+    - ssh $PROD_SSH /bin/bash -c if test -d $CI_PROJECT_NAME; then mv -v $CI_PROJECT_NAME{,.old}; fi
     # rsync to fresh folder
     - rsync -av --exclude data/ --exclude vendor/ --exclude http.log ./ $PROD_SSH:$CI_PROJECT_NAME
     # Restart app

@@ -1,5 +1,9 @@
 image: golang:latest
 
+variables:
+  DEV_SSH: "golang@leela.es.gy"
+  PROD_SSH: "golang@frink.es.gy"
+
 cache:
   key: "$CI_BUILD_REF_NAME"
   paths:
@@ -54,7 +58,17 @@ deploy_staging:
   stage: deploy
   script:
     - apt-get update -y && apt-get install -y rsync
-    - /bin/bash ./deploy.sh golang@leela.es.gy golang@$CI_PROJECT_NAME $CI_PROJECT_NAME
+    # Remove previous backup of app
+    - ssh $DEV_SSH /bin/bash -c 'if [ -f $CI_PROJECT_NAME.old ]; then rm -rfv $CI_PROJECT_NAME.old; fi'
+    # Stop app, to release DB locks 
+    - ssh $DEV_SSH sudo systemctl stop golang@$CI_PROJECT_NAME
+    # Backup old app
+    - ssh $DEV_SSH /bin/bash -c 'if [ -f $CI_PROJECT_NAME ]; then mv -v $CI_PROJECT_NAME{,.old}; fi'
+    # rsync to fresh folder
+    - rsync -av --exclude data/ --exclude vendor/ --exclude http.log ./ $DEV_SSH:$CI_PROJECT_NAME
+    # Restart app
+    - ssh $DEV_SSH sudo systemctl start golang@$CI_PROJECT_NAME
+    #- /bin/bash ./deploy.sh golang@leela.es.gy golang@$CI_PROJECT_NAME $CI_PROJECT_NAME
   environment:
     name: staging
     url: http://jasper.leela.es.gy
@@ -64,7 +78,17 @@ deploy_prod:
   stage: deploy
   script:
     - apt-get update -y && apt-get install -y rsync
-    - /bin/sh ./deploy.sh golang@frink.es.gy golang@$CI_PROJECT_NAME $CI_PROJECT_NAME
+    # Remove previous backup of app
+    - ssh $PROD_SSH /bin/bash -c 'if [ -f $CI_PROJECT_NAME.old ]; then rm -rfv $CI_PROJECT_NAME.old; fi'
+    # Stop app, to release DB locks 
+    - ssh $PROD_SSH sudo systemctl stop golang@$CI_PROJECT_NAME
+    # Backup old app
+    - ssh $PROD_SSH /bin/bash -c 'if [ -f $CI_PROJECT_NAME ]; then mv -v $CI_PROJECT_NAME{,.old}; fi'
+    # rsync to fresh folder
+    - rsync -av --exclude data/ --exclude vendor/ --exclude http.log ./ $PROD_SSH:$CI_PROJECT_NAME
+    # Restart app
+    - ssh $PROD_SSH sudo systemctl start golang@$CI_PROJECT_NAME
+    #- /bin/bash ./deploy.sh golang@frink.es.gy golang@$CI_PROJECT_NAME $CI_PROJECT_NAME
   environment:
     name: production
     url: https://thatsapaddl.in

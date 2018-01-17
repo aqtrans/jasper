@@ -17,13 +17,15 @@ import (
 	"os"
 	"time"
 
+	"strconv"
+
 	"github.com/dimfeld/httptreemux"
+	"github.com/fukata/golang-stats-api-handler"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/cache2go"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
-	"strconv"
 )
 
 var cache *cache2go.CacheTable
@@ -215,6 +217,7 @@ func main() {
 	http.HandleFunc("/robots.txt", http.NotFound)
 	http.HandleFunc("/blog", http.NotFound)
 	http.HandleFunc("/wp-login.php", http.NotFound)
+	http.HandleFunc("/_metrics", stats_api.Handler)
 	http.Handle("/", r)
 
 	http.ListenAndServe("0.0.0.0:8002", nil)

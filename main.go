@@ -24,6 +24,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/cache2go"
+	_ "github.com/tevjef/go-runtime-metrics/expvar"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )

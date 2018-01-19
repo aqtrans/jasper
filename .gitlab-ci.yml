@@ -53,7 +53,7 @@ test-my-project:
 deploy_staging:
   stage: deploy
   variables:
-    DEPLOY_HOST: 'golang@leela.es.gy'
+    DEPLOY_HOST: 'golang@rick.jba.io'
   script:
     - apt-get update -y && apt-get install -y rsync
     # Remove previous backup of app
@@ -66,16 +66,15 @@ deploy_staging:
     - rsync -av --exclude data/ --exclude vendor/ --exclude http.log ./ $DEPLOY_HOST:$CI_PROJECT_NAME
     # Restart app
     - ssh $DEPLOY_HOST sudo systemctl start golang@$CI_PROJECT_NAME
-    #- /bin/bash ./deploy.sh golang@leela.es.gy golang@$CI_PROJECT_NAME $CI_PROJECT_NAME
   environment:
     name: staging
-    url: http://jasper.leela.es.gy
+    url: http://jasper.rick.jba.io
   when: manual
 
 deploy_prod:
   stage: deploy
   variables:
-    DEPLOY_HOST: 'golang@frink.es.gy'
+    DEPLOY_HOST: 'golang@frink.jba.io'
   script:
     - echo $DEPLOY_HOST
     - echo $CI_PROJECT_NAME
@@ -90,7 +89,6 @@ deploy_prod:
     - rsync -av --exclude data/ --exclude vendor/ --exclude http.log ./ $DEPLOY_HOST:$CI_PROJECT_NAME
     # Restart app
     - ssh $DEPLOY_HOST sudo systemctl start golang@$CI_PROJECT_NAME
-    #- /bin/bash ./deploy.sh golang@frink.es.gy golang@$CI_PROJECT_NAME $CI_PROJECT_NAME
   environment:
     name: production
     url: https://thatsapaddl.in

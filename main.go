@@ -20,7 +20,6 @@ import (
 	"strconv"
 
 	"github.com/dimfeld/httptreemux"
-	"github.com/fukata/golang-stats-api-handler"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/cache2go"
@@ -32,8 +31,7 @@ import (
 var cache *cache2go.CacheTable
 
 func drawHandler(w http.ResponseWriter, r *http.Request) {
-	params := r.Context().Value(httptreemux.ParamsContextKey).(map[string]string)
-	ptext := params["text"]
+	ptext := httptreemux.ContextParams(r.Context())["text"]
 	// Add a question mark to the end of given text
 	text := ptext + "?"
 	title := "That's a Paddlin'"
@@ -218,8 +216,8 @@ func main() {
 	http.HandleFunc("/robots.txt", http.NotFound)
 	http.HandleFunc("/blog", http.NotFound)
 	http.HandleFunc("/wp-login.php", http.NotFound)
-	http.HandleFunc("/_metrics", stats_api.Handler)
 	http.Handle("/", r)
 
+	log.Println("Now listening on 127.0.0.1:8002")
 	http.ListenAndServe("0.0.0.0:8002", nil)
 }

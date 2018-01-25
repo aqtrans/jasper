@@ -219,5 +219,5 @@ func main() {
 	http.Handle("/", r)
 
 	log.Println("Now listening on 127.0.0.1:8002")
-	http.ListenAndServe("0.0.0.0:8002", nil)
+	http.ListenAndServe("127.0.0.1:8002", nil)
 }

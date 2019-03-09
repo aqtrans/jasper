@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"time"
 
-	assets "git.jba.io/go/jasper/vfs"
+	"git.jba.io/go/jasper/vfs"
 
 	"strconv"
 
@@ -23,6 +23,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/cache2go"
+	"github.com/shurcooL/httpfs/vfsutil"
 	_ "github.com/tevjef/go-runtime-metrics/expvar"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
@@ -53,7 +54,7 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reader, err := assets.Assets.Open("tap.png")
+	reader, err := vfs.VFS.Open("tap.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,8 +68,12 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	newimage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 	draw.Draw(newimage, newimage.Bounds(), originalimage, image.ZP, draw.Src)
 
-	fontfile := assets.Font()
-	myFont, err := freetype.ParseFont(fontfile)
+	fontFile, err := vfsutil.ReadFile(vfs.VFS, "DejaVuSansCondensed-Bold.ttf")
+	if err != nil {
+		log.Fatalln("Error loading DejaVuSansCondensed-Bold.ttf", err)
+		return
+	}
+	myFont, err := freetype.ParseFont(fontFile)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -165,7 +170,7 @@ func robotsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func serveContent(w http.ResponseWriter, r *http.Request, file string) {
-	f, err := assets.Assets.Open(file)
+	f, err := vfs.VFS.Open(file)
 	if err != nil {
 		http.NotFound(w, r)
 		return

@@ -10,11 +10,11 @@ import (
 )
 
 func main() {
-	var Assets http.FileSystem = http.Dir("../assets")
-	err := vfsgen.Generate(Assets, vfsgen.Options{
-		PackageName:  "assets",
+	var VFS http.FileSystem = http.Dir("../assets")
+	err := vfsgen.Generate(VFS, vfsgen.Options{
+		PackageName:  "vfs",
 		BuildTags:    "!dev",
-		VariableName: "Assets",
+		VariableName: "VFS",
 	})
 	if err != nil {
 		log.Fatalln(err)

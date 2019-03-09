@@ -1,0 +1,4 @@
+#!/bin/sh
+
+systemctl disable jasper.service >/dev/null
+systemctl stop jasper.service >/dev/null

@@ -1,0 +1,10 @@
+Source: jasper
+Section: unknown
+Priority: optional
+Maintainer: aqtrans <aqtrans@jba.io>
+Homepage: https://git.jba.io/go/jasper
+
+Package: jasper
+Architecture: amd64
+Depends: libc6, adduser
+Description: A meme-as-a-service, taking a URL and creating a meme out of it. Written in Golang.

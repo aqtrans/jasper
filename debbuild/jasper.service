@@ -1,0 +1,11 @@
+[Unit]
+Description=Golang jasper daemon
+
+[Service]
+ProtectSystem=strict
+ExecStart=/usr/bin/jasper
+Restart=on-failure
+User=jasper
+
+[Install]
+WantedBy=default.target

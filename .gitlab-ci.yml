@@ -46,7 +46,7 @@ build-my-project:
     expire_in: 1 day
     paths:
       - jasper
-      - vfs/assets_vfsdata.go
+      - vfs/vfs_vfsdata.go
 
 build-package:
   stage: package

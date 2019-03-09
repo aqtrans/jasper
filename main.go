@@ -10,12 +10,12 @@ import (
 	"image/draw"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
-	"os"
 	"time"
+
+	assets "git.jba.io/go/jasper/vfs"
 
 	"strconv"
 
@@ -53,7 +53,7 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reader, err := os.Open("assets/tap.png")
+	reader, err := assets.Assets.Open("tap.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,11 +67,7 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	newimage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 	draw.Draw(newimage, newimage.Bounds(), originalimage, image.ZP, draw.Src)
 
-	fontfile, err := ioutil.ReadFile("./assets/DejaVuSansCondensed-Bold.ttf")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
+	fontfile := assets.Font()
 	myFont, err := freetype.ParseFont(fontfile)
 	if err != nil {
 		log.Fatal(err)
@@ -169,7 +165,7 @@ func robotsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func serveContent(w http.ResponseWriter, r *http.Request, file string) {
-	f, err := http.Dir("./assets/").Open(file)
+	f, err := assets.Assets.Open(file)
 	if err != nil {
 		http.NotFound(w, r)
 		return

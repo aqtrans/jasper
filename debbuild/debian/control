@@ -1,5 +1,5 @@
 Source: jasper
-Section: unknown
+Section: web
 Priority: optional
 Maintainer: aqtrans <aqtrans@jba.io>
 Homepage: https://git.jba.io/go/jasper
@@ -7,4 +7,4 @@ Homepage: https://git.jba.io/go/jasper
 Package: jasper
 Architecture: amd64
 Depends: libc6, adduser
-Description: A meme-as-a-service, taking a URL and creating a meme out of it. Written in Golang.
+Description: Generates a "Thats a Paddlin'" based on given URLs

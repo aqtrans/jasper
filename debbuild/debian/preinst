@@ -16,7 +16,7 @@ set -e
 
 case "$1" in
     upgrade)
-        systemctl stop jasper
+        deb-systemd-helper stop jasper
     ;;
 
     install|abort-upgrade)

@@ -5,8 +5,8 @@ set -e
 USER=jasper
 
 if ! getent passwd "$USER" >/dev/null; then
- adduser --quiet --system "$USER"
+ adduser --quiet --disabled-login "$USER"
 fi
 
-systemctl --system daemon-reload >/dev/null
-#systemctl start gowiki.service >/dev/null 
+deb-systemd-helper --system daemon-reload >/dev/null
+deb-systemd-helper start gowiki.service >/dev/null 

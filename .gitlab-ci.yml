@@ -56,6 +56,7 @@ build-package:
     - cd debbuild/
     - dch -M -v 1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID "New version from Git" && dch -M -r -D stretch ""
     - debuild -us -uc -b  
+    - cd ../
     - cp jasper_1.0-*_amd64.deb jasper.deb
   artifacts:
     expire_in: 1 day

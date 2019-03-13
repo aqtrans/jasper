@@ -54,12 +54,12 @@ build-package:
     - apt update && apt install -y build-essential devscripts debhelper
     - cp jasper debbuild/jasper
     - cd debbuild/
-    - dch -M -i "New version from Git" && dch -M -r -D stretch ""
+    - dch -M -v 1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID "New version from Git" && dch -M -r -D stretch ""
     - debuild -us -uc -b  
   artifacts:
     expire_in: 1 day
     paths:
-      - jasper_*_amd64.deb
+      - jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb
 
 test-my-project:
   stage: test
@@ -70,14 +70,21 @@ test-my-project:
     - go test -race
     - go test -cover
 
+#deploy_to_repo:
+#  stage: deploy
+#  variables:
+#    DEPLOY_HOST: 'repo@bob.jba.io'
+#  script:
+#    - scp ./jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb $DEPLOY_HOST:/home/repo/
+#    - ssh $DEPLOY_HOST reprepro -b www/debian/ includedeb stretch jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb
+
 deploy_to_repo:
   stage: deploy
   variables:
-    DEPLOY_HOST: 'repo@bob.jba.io'
+    DEPLOY_HOST: 'deploy@bob.jba.io'
   script:
-    - scp ./*.deb $DEPLOY_HOST:/home/repo/
-    - ssh $DEPLOY_HOST reprepro -b www/debian/ includedeb stretch *.deb
-
+    - scp jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb $DEPLOY_HOST:/home/deploy/
+    - ssh $DEPLOY_HOST dpkg -i jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb
 
 #deploy_staging:
 #  stage: deploy

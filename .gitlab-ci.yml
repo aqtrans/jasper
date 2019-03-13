@@ -88,7 +88,7 @@ deploy_to_repo:
     - ls -l jasper.deb
     - ls -l ./
     - scp -v jasper.deb $DEPLOY_HOST:/home/deploy/
-    - ssh $DEPLOY_HOST dpkg -i jasper.deb
+    - ssh $DEPLOY_HOST sudo dpkg -i jasper.deb
 
 #deploy_staging:
 #  stage: deploy

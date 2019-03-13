@@ -80,13 +80,27 @@ test-my-project:
 #    - scp ./jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb $DEPLOY_HOST:/home/repo/
 #    - ssh $DEPLOY_HOST reprepro -b www/debian/ includedeb stretch jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb
 
-deploy_to_repo:
+deploy_to_prod:
   stage: deploy
   variables:
     DEPLOY_HOST: 'deploy@bob.jba.io'
   script:
     - scp jasper.deb $DEPLOY_HOST:/home/deploy/
     - ssh $DEPLOY_HOST sudo dpkg -i jasper.deb
+  environment:
+    name: production
+    url: https://thatsapaddl.in    
+  only:
+    - master
+
+deploy_to_staging:
+  stage: deploy
+  variables:
+    DEPLOY_HOST: 'deploy@rick.jba.io'
+  script:
+    - scp jasper.deb $DEPLOY_HOST:/home/deploy/
+    - ssh $DEPLOY_HOST sudo dpkg -i jasper.deb
+  when: manual    
 
 #deploy_staging:
 #  stage: deploy

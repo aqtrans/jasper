@@ -3,4 +3,4 @@
 set -e
 
 deb-systemd-helper disable jasper.service >/dev/null
-deb-systemd-helper stop jasper.service >/dev/null
+deb-systemd-invoke stop jasper.service >/dev/null

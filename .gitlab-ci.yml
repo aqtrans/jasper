@@ -59,7 +59,7 @@ build-package:
   artifacts:
     expire_in: 1 day
     paths:
-      - jasper_1.0-$CI_COMMIT_REF_NAME-$CI_JOB_ID_amd64.deb
+      - jasper_*_amd64.deb
 
 test-my-project:
   stage: test

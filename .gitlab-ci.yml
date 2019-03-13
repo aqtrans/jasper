@@ -85,9 +85,7 @@ deploy_to_repo:
   variables:
     DEPLOY_HOST: 'deploy@bob.jba.io'
   script:
-    - ls -l jasper.deb
-    - ls -l ./
-    - scp -v jasper.deb $DEPLOY_HOST:/home/deploy/
+    - scp jasper.deb $DEPLOY_HOST:/home/deploy/
     - ssh $DEPLOY_HOST sudo dpkg -i jasper.deb
 
 #deploy_staging:

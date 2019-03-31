@@ -181,6 +181,29 @@ func serveContent(w http.ResponseWriter, r *http.Request, file string) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(`<html><body>
+	<form action="/paddle" method="post">
+	<div><label for="paddle">What deserves a paddlin'? </label>
+	  <input type="text" id="paddle" name="paddle">
+	</div>
+	<div>
+	  <button>Paddle</button>
+	</div>
+	</form>
+	<img src="/tap.png"></img>
+	</body></html>`))
+	//serveContent(w, r, "/tap.png")
+	return
+}
+
+func formPost(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.FormValue("paddle"))
+	http.Redirect(w, r, "/"+r.FormValue("paddle"), http.StatusSeeOther)
+}
+
+func tapDirect(w http.ResponseWriter, r *http.Request) {
 	serveContent(w, r, "/tap.png")
 	return
 }
@@ -211,6 +234,8 @@ func main() {
 	r := httptreemux.NewContextMux()
 	r.GET("/_stats", statsHandler)
 	r.GET("/*text", drawHandler)
+	r.POST("/paddle", formPost)
+	r.GET("/tap.png", tapDirect)
 	r.GET("/", indexHandler)
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/favicon.png", faviconHandler)

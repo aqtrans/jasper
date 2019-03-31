@@ -199,7 +199,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func formPost(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.FormValue("paddle"))
+	//log.Println(r.FormValue("paddle"))
 	http.Redirect(w, r, "/"+r.FormValue("paddle"), http.StatusSeeOther)
 }
 

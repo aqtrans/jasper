@@ -13,13 +13,11 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"strconv"
 	"time"
 
 	"git.jba.io/go/jasper/vfs"
-
-	"strconv"
-
-	"github.com/dimfeld/httptreemux"
+	"github.com/dimfeld/httptreemux/v5"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/cache2go"
@@ -68,9 +66,9 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	newimage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 	draw.Draw(newimage, newimage.Bounds(), originalimage, image.ZP, draw.Src)
 
-	fontFile, err := vfsutil.ReadFile(vfs.VFS, "DejaVuSansCondensed-Bold.ttf")
+	fontFile, err := vfsutil.ReadFile(vfs.VFS, "impact.ttf")
 	if err != nil {
-		log.Fatalln("Error loading DejaVuSansCondensed-Bold.ttf", err)
+		log.Fatalln("Error loading impact.ttf", err)
 		return
 	}
 	myFont, err := freetype.ParseFont(fontFile)

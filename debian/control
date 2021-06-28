@@ -1,10 +1,6 @@
-Source: jasper
-Section: web
-Priority: optional
-Maintainer: aqtrans <aqtrans@jba.io>
-Homepage: https://git.jba.io/go/jasper
-
 Package: jasper
+Maintainer: Jordan Anderson <me@jba.io>
+Version: 1.0.1624860252
 Architecture: amd64
 Depends: libc6, adduser
 Description: Generates a "Thats a Paddlin'" based on given URLs

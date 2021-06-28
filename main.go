@@ -6,26 +6,31 @@ package main
 // https://godoc.org/golang.org/x/image/font
 
 import (
+	"embed"
 	"image"
 	"image/draw"
 	"image/png"
-	"io"
 	"log"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
 
-	"git.jba.io/go/jasper/vfs"
+	//"git.jba.io/go/jasper/vfs"
 	"github.com/dimfeld/httptreemux/v5"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/cache2go"
-	"github.com/shurcooL/httpfs/vfsutil"
+
+	//"github.com/shurcooL/httpfs/vfsutil"
 	_ "github.com/tevjef/go-runtime-metrics/expvar"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
+
+// Go 1.16 embed:
+//go:embed assets
+var assetsfs embed.FS
 
 var cache *cache2go.CacheTable
 
@@ -52,7 +57,8 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reader, err := vfs.VFS.Open("tap.png")
+	reader, err := assetsfs.Open("assets/tap.png")
+	//reader, err := vfs.VFS.Open("tap.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,9 +70,10 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	b := originalimage.Bounds()
 	newimage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-	draw.Draw(newimage, newimage.Bounds(), originalimage, image.ZP, draw.Src)
+	draw.Draw(newimage, newimage.Bounds(), originalimage, image.Point{0, 0}, draw.Src)
 
-	fontFile, err := vfsutil.ReadFile(vfs.VFS, "impact.ttf")
+	fontFile, err := assetsfs.ReadFile("assets/impact.ttf")
+	//fontFile, err := vfsutil.ReadFile(vfs.VFS, "impact.ttf")
 	if err != nil {
 		log.Fatalln("Error loading impact.ttf", err)
 		return
@@ -146,10 +153,10 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	//log.Println(r.URL.Path)
 	if r.URL.Path == "/favicon.ico" {
-		serveContent(w, r, "/favicon.ico")
+		serveContent(w, "assets/favicon.ico")
 		return
 	} else if r.URL.Path == "/favicon.png" {
-		serveContent(w, r, "/favicon.png")
+		serveContent(w, "assets/favicon.png")
 		return
 	} else {
 		http.NotFound(w, r)
@@ -158,24 +165,12 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func robotsHandler(w http.ResponseWriter, r *http.Request) {
-	//log.Println(r.URL.Path)
-	if r.URL.Path == "/robots.txt" {
-		serveContent(w, r, "/robots.txt")
-		return
-	}
-	http.NotFound(w, r)
-}
-
-func serveContent(w http.ResponseWriter, r *http.Request, file string) {
-	f, err := vfs.VFS.Open(file)
+func serveContent(w http.ResponseWriter, file string) {
+	assetBytes, err := assetsfs.ReadFile(file)
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		log.Println("error reading file from assetfs:", file, err)
 	}
-	content := io.ReadSeeker(f)
-	http.ServeContent(w, r, file, time.Now(), content)
-	return
+	w.Write(assetBytes)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -192,8 +187,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	</form>
 	<img src="/tap.png"></img>
 	</body></html>`))
-	//serveContent(w, r, "/tap.png")
-	return
 }
 
 func formPost(w http.ResponseWriter, r *http.Request) {
@@ -202,8 +195,7 @@ func formPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func tapDirect(w http.ResponseWriter, r *http.Request) {
-	serveContent(w, r, "/tap.png")
-	return
+	serveContent(w, "assets/tap.png")
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {

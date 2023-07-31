@@ -22,5 +22,6 @@ tasks:
       go build -ldflags "-X main.sha1ver=$(git rev-parse HEAD) -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o jasper
   - deploy: |
       cd jasper
-      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no jasper deploy@morty.squanch.space:/usr/local/bin/jasper
+      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no jasper deploy@morty.squanch.space:/tmp/jasper
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@morty.squanch.space "doas /bin/mv /tmp/jasper /usr/local/bin/jasper"
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@morty.squanch.space "doas /usr/sbin/rcctl restart jasper"

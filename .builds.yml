@@ -1,0 +1,26 @@
+image: openbsd/7.3
+packages:
+  - go
+  - git
+secrets:
+  - 1efbd7f2-d0b5-4cfc-8a0c-f1c12da95d4e
+sources:
+  - ssh://git@git.squanch.space/~aqtrans/jasper
+tasks:
+  - setup: |
+      cd jasper
+      go get -d
+      go generate
+  - test: |
+      cd jasper
+      go test
+      go test -race
+      go test -cover
+      go test -bench=.
+  - build: |
+      cd jasper
+      go build -ldflags "-X main.sha1ver=$(git rev-parse HEAD) -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o jasper
+  - deploy: |
+      cd jasper
+      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no jasper deploy@morty.squanch.space:/usr/local/bin/jasper
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@morty.squanch.space "doas /usr/sbin/rcctl restart jasper"

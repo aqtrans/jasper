@@ -3,9 +3,9 @@ packages:
   - go
   - git
 secrets:
-  - 1efbd7f2-d0b5-4cfc-8a0c-f1c12da95d4e
+  - 8ad6a3b8-827a-4454-8337-3ec2baab7ca0
 sources:
-  - ssh://git@git.squanch.space/~aqtrans/jasper
+  - ssh://git@git.sr.ht/~aqtrans/jasper
 tasks:
   - setup: |
       cd jasper
@@ -22,6 +22,6 @@ tasks:
       go build -ldflags "-X main.sha1ver=$(git rev-parse HEAD) -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o jasper
   - deploy: |
       cd jasper
-      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no jasper deploy@morty.squanch.space:/tmp/jasper
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@morty.squanch.space "doas /bin/mv /tmp/jasper /usr/local/bin/jasper"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@morty.squanch.space "doas /usr/sbin/rcctl restart jasper"
+      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no jasper deploy@starbuck.squanch.space:/tmp/jasper
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@starbuck.squanch.space "doas /bin/mv /tmp/jasper /usr/local/bin/jasper"
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no deploy@starbuck.squanch.space "doas /usr/sbin/rcctl restart jasper"

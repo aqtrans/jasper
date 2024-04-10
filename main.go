@@ -29,6 +29,7 @@ import (
 )
 
 // Go 1.16 embed:
+//
 //go:embed assets
 var assetsfs embed.FS
 
@@ -170,13 +171,16 @@ func serveContent(w http.ResponseWriter, file string) {
 	if err != nil {
 		log.Println("error reading file from assetfs:", file, err)
 	}
-	w.Write(assetBytes)
+	_, err = w.Write(assetBytes)
+	if err != nil {
+		log.Println("error writing HTTP response:", file, err)
+	}
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(`<html><body>
+	_, err := w.Write([]byte(`<html><body>
 	<form action="/paddle" method="post">
 	<div><label for="paddle">What deserves a paddlin'? </label>
 	  <input type="text" id="paddle" name="paddle">
@@ -187,6 +191,10 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	</form>
 	<img src="/tap.png"></img>
 	</body></html>`))
+
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
 }
 
 func formPost(w http.ResponseWriter, r *http.Request) {
@@ -199,22 +207,54 @@ func tapDirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {
+	var err error
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	count := strconv.Itoa(cache.Count())
-	w.Write([]byte("<html><body>"))
-	w.Write([]byte("<p>Count: " + count + "</p>"))
-	w.Write([]byte("<table><thead>"))
-	w.Write([]byte("<tr><th>Title</th><th>Access Count</th></tr></thead><tbody>"))
+	_, err = w.Write([]byte("<html><body>"))
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
+	_, err = w.Write([]byte("<p>Count: " + count + "</p>"))
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
+	_, err = w.Write([]byte("<table><thead>"))
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
+	_, err = w.Write([]byte("<tr><th>Title</th><th>Access Count</th></tr></thead><tbody>"))
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
 	mostAccessed := cache.MostAccessed(100)
 	for _, v := range mostAccessed {
-		w.Write([]byte("<tr>"))
-		w.Write([]byte("<td>" + v.Key().(string) + "</td>"))
-		w.Write([]byte("<td>" + strconv.FormatInt(v.AccessCount(), 10) + "</td>"))
-		w.Write([]byte("</tr>"))
+		_, err = w.Write([]byte("<tr>"))
+		if err != nil {
+			log.Println("error writing HTTP response: ", err)
+		}
+		_, err = w.Write([]byte("<td>" + v.Key().(string) + "</td>"))
+		if err != nil {
+			log.Println("error writing HTTP response: ", err)
+		}
+		_, err = w.Write([]byte("<td>" + strconv.FormatInt(v.AccessCount(), 10) + "</td>"))
+		if err != nil {
+			log.Println("error writing HTTP response: ", err)
+		}
+		_, err = w.Write([]byte("</tr>"))
+		if err != nil {
+			log.Println("error writing HTTP response: ", err)
+		}
 	}
-	w.Write([]byte("</tbody></table>"))
-	w.Write([]byte("</body></html>"))
+	_, err = w.Write([]byte("</tbody></table>"))
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
+	_, err = w.Write([]byte("</body></html>"))
+
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
 }
 
 func main() {
@@ -235,5 +275,8 @@ func main() {
 	http.Handle("/", r)
 
 	log.Println("Now listening on 127.0.0.1:8002")
-	http.ListenAndServe("127.0.0.1:8002", nil)
+	err := http.ListenAndServe("127.0.0.1:8002", nil)
+	if err != nil {
+		log.Fatalln("error listening ")
+	}
 }

@@ -9,6 +9,10 @@ sources:
 environment:
   project: jasper
   remote: deploy@barry.squanch.space
+triggers:
+  - action: email
+    condition: failure
+    to: Jordan Anderson <jordan@jba.io>
 tasks:
   - setup: |
       cd ${project}

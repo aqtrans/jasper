@@ -1,4 +1,4 @@
-module git.jba.io/go/jasper
+module git.sr.ht/~aqtrans/jasper
 
 go 1.16
 

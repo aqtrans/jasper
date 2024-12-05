@@ -5,7 +5,7 @@ packages:
 secrets:
   - 9ef6e07e-cae5-4ec0-b799-8898de1f742b
 sources:
-  - ssh://git@git.jba.io:go/jasper.git
+  - ssh://git@git.sr.ht/~aqtrans/jasper
 environment:
   project: jasper
   remote: deploy@barry.squanch.space

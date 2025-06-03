@@ -8,7 +8,7 @@ secrets:
 sources:
   - ssh://git@git.sr.ht/~aqtrans/jasper
 environment:
-  project: esg
+  project: jasper
   remote: deploy@jba42.com
   goversion: 1.24.3
 triggers:
@@ -35,13 +35,13 @@ tasks:
   - build: |
       cd ${project}
       export PATH=$PATH:/usr/local/go/bin
-      go build -ldflags "-X main.sha1ver=$(git rev-parse HEAD) -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o jasper
+      go build -ldflags "-X main.sha1ver=$(git rev-parse HEAD) -X main.buildTime=$(date +'%Y-%m-%d_%T')" -o ${project}
       if [ "$(git rev-parse origin/master)" != "$(git rev-parse HEAD)" ]; then \
         complete-build; \
       fi
   - deploy: |
       cd ${project}
-      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no jasper $remote:/opt/deploy/jasper
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $remote "sudo /usr/bin/systemctl stop jasper"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $remote "sudo /usr/bin/mv /opt/deploy/esg /usr/local/bin/jasper"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $remote "sudo /usr/bin/systemctl start jasper"
+      scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${project} $remote:/opt/deploy/${project}
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $remote "sudo /usr/bin/systemctl stop ${project}"
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $remote "sudo /usr/bin/mv /opt/deploy/${project} /usr/local/bin/${project}"
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $remote "sudo /usr/bin/systemctl start ${project}"

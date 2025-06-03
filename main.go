@@ -41,12 +41,12 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	// Add a question mark to the end of given text
 	text := ptext + "?"
 	title := "That's a Paddlin'"
-	log.Println(text)
+	//log.Println(text)
 
 	// Try and find image in cache
 	cached, cacheErr := cache.Value(ptext)
 	if cacheErr == nil {
-		log.Println("cached image found: ", cached.Key(), cached.AccessCount())
+		//log.Println("cached image found: ", cached.Key(), cached.AccessCount())
 
 		w.WriteHeader(http.StatusOK)
 
@@ -113,7 +113,7 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	// If the width of the text is wider than the image,
 	// we loop through shrinking the font size until the text fits
 	for textWidth > imageWidth {
-		log.Println("Text too long")
+		//log.Println("Text too long")
 		fontSize = fontSize - 1.0
 		face = truetype.NewFace(myFont, &truetype.Options{
 			Size:    fontSize,
@@ -127,8 +127,8 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		dm = d.MeasureString(text)
 		textWidth = dm.Round()
-		log.Println("textWidth")
-		log.Println(textWidth)
+		//log.Println("textWidth")
+		//log.Println(textWidth)
 	}
 
 	y := 10 + int(math.Ceil(fontSize*72/72))

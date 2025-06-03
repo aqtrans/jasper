@@ -23,6 +23,7 @@ import (
 	"github.com/muesli/cache2go"
 
 	//"github.com/shurcooL/httpfs/vfsutil"
+	"github.com/go-chi/httprate"
 	_ "github.com/tevjef/go-runtime-metrics/expvar"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
@@ -261,7 +262,14 @@ func main() {
 	// Initialize the cache
 	cache = cache2go.Cache("tap")
 
+	limit := httprate.Limit(
+		10,             // requests
+		10*time.Second, // per duration
+		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
+	)
+
 	r := httptreemux.NewContextMux()
+	r.UseHandler(limit)
 	r.GET("/_stats", statsHandler)
 	r.GET("/*text", drawHandler)
 	r.POST("/paddle", formPost)

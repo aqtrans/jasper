@@ -13,14 +13,12 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"strconv"
 	"time"
 
 	//"git.jba.io/go/jasper/vfs"
 	"github.com/dimfeld/httptreemux/v5"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
-	"github.com/muesli/cache2go"
 
 	//"github.com/shurcooL/httpfs/vfsutil"
 	"github.com/go-chi/httprate"
@@ -34,30 +32,12 @@ import (
 //go:embed assets
 var assetsfs embed.FS
 
-var cache *cache2go.CacheTable
-
 func drawHandler(w http.ResponseWriter, r *http.Request) {
 	ptext := httptreemux.ContextParams(r.Context())["text"]
 	// Add a question mark to the end of given text
 	text := ptext + "?"
 	title := "That's a Paddlin'"
 	//log.Println(text)
-
-	// Try and find image in cache
-	cached, cacheErr := cache.Value(ptext)
-	if cacheErr == nil {
-		//log.Println("cached image found: ", cached.Key(), cached.AccessCount())
-
-		w.WriteHeader(http.StatusOK)
-
-		w.Header().Set("Content-Type", "image/png")
-
-		encodeErr := png.Encode(w, cached.Data().(image.Image))
-		if encodeErr != nil {
-			log.Println(encodeErr)
-		}
-		return
-	}
 
 	reader, err := assetsfs.Open("assets/tap.png")
 	//reader, err := vfs.VFS.Open("tap.png")
@@ -139,9 +119,6 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	d.DrawString(text)
 
-	// Add element to cache
-	cache.Add(ptext, 24*time.Hour, newimage)
-
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "image/png")
 
@@ -211,12 +188,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	count := strconv.Itoa(cache.Count())
 	_, err = w.Write([]byte("<html><body>"))
-	if err != nil {
-		log.Println("error writing HTTP response: ", err)
-	}
-	_, err = w.Write([]byte("<p>Count: " + count + "</p>"))
 	if err != nil {
 		log.Println("error writing HTTP response: ", err)
 	}
@@ -227,25 +199,6 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write([]byte("<tr><th>Title</th><th>Access Count</th></tr></thead><tbody>"))
 	if err != nil {
 		log.Println("error writing HTTP response: ", err)
-	}
-	mostAccessed := cache.MostAccessed(100)
-	for _, v := range mostAccessed {
-		_, err = w.Write([]byte("<tr>"))
-		if err != nil {
-			log.Println("error writing HTTP response: ", err)
-		}
-		_, err = w.Write([]byte("<td>" + v.Key().(string) + "</td>"))
-		if err != nil {
-			log.Println("error writing HTTP response: ", err)
-		}
-		_, err = w.Write([]byte("<td>" + strconv.FormatInt(v.AccessCount(), 10) + "</td>"))
-		if err != nil {
-			log.Println("error writing HTTP response: ", err)
-		}
-		_, err = w.Write([]byte("</tr>"))
-		if err != nil {
-			log.Println("error writing HTTP response: ", err)
-		}
 	}
 	_, err = w.Write([]byte("</tbody></table>"))
 	if err != nil {
@@ -259,9 +212,6 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Initialize the cache
-	cache = cache2go.Cache("tap")
-
 	limit := httprate.Limit(
 		10,             // requests
 		10*time.Second, // per duration

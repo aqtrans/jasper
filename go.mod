@@ -2,7 +2,7 @@ module git.sr.ht/~aqtrans/jasper
 
 go 1.23.0
 
-toolchain go1.24.3
+toolchain go1.25.3
 
 require (
 	github.com/dimfeld/httptreemux/v5 v5.5.0

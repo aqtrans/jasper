@@ -10,7 +10,7 @@ sources:
 environment:
   project: jasper
   remote: deploy@jba42.com
-  goversion: 1.26.3
+  goversion: 1.26.5
 triggers:
   - action: email
     condition: failure

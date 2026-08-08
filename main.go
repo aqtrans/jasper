@@ -34,6 +34,13 @@ var assetsfs embed.FS
 
 func drawHandler(w http.ResponseWriter, r *http.Request) {
 	ptext := httptreemux.ContextParams(r.Context())["text"]
+
+	// Do not allow long words
+	if len(ptext) > 200 {
+		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
+		return
+	}
+
 	// Add a question mark to the end of given text
 	text := ptext + "?"
 	title := "That's a Paddlin'"
@@ -42,13 +49,17 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	reader, err := assetsfs.Open("assets/tap.png")
 	//reader, err := vfs.VFS.Open("tap.png")
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
+		log.Println(err)
+		return
 	}
 	defer reader.Close()
 
 	originalimage, _, err := image.Decode(reader)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
+		log.Println(err)
+		return
 	}
 	b := originalimage.Bounds()
 	newimage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
@@ -57,12 +68,14 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	fontFile, err := assetsfs.ReadFile("assets/impact.ttf")
 	//fontFile, err := vfsutil.ReadFile(vfs.VFS, "impact.ttf")
 	if err != nil {
-		log.Fatalln("Error loading impact.ttf", err)
+		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
+		log.Println("Error loading impact.ttf", err)
 		return
 	}
 	myFont, err := freetype.ParseFont(fontFile)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
+		log.Println(err)
 		return
 	}
 
@@ -124,7 +137,9 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = png.Encode(w, newimage)
 	if err != nil {
+		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
 		log.Println(err)
+		return
 	}
 
 }
@@ -212,11 +227,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	limit := httprate.Limit(
-		10,             // requests
-		10*time.Second, // per duration
-		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint),
-	)
+	limit := httprate.LimitByIP(100, time.Minute)
 
 	r := httptreemux.NewContextMux()
 	r.UseHandler(limit)

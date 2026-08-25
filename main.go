@@ -7,12 +7,14 @@ package main
 
 import (
 	"embed"
+	"errors"
 	"image"
 	"image/draw"
 	"image/png"
 	"log"
 	"math"
 	"net/http"
+	"regexp"
 	"time"
 
 	//"git.jba.io/go/jasper/vfs"
@@ -32,6 +34,14 @@ import (
 //go:embed assets
 var assetsfs embed.FS
 
+func sanitizeInput(s string) (string, error) {
+	re := regexp.MustCompile(`[^a-zA-Z0-9 ]`)
+	if re.MatchString(s) {
+		return "", errors.New("unable to sanitize text:" + s)
+	}
+	return re.ReplaceAllString(s, ""), nil
+}
+
 func drawHandler(w http.ResponseWriter, r *http.Request) {
 	ptext := httptreemux.ContextParams(r.Context())["text"]
 
@@ -41,8 +51,15 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Sanitize input content
+	sanitizedText, err := sanitizeInput(ptext)
+	if err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
 	// Add a question mark to the end of given text
-	text := ptext + "?"
+	text := sanitizedText + "?"
 	title := "That's a Paddlin'"
 	//log.Println(text)
 

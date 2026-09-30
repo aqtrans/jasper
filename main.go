@@ -173,17 +173,80 @@ func serveContent(w http.ResponseWriter, file string) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err := w.Write([]byte(`<html><body>
-	<form action="/paddle" method="post">
-	<div><label for="paddle">What deserves a paddlin'? </label>
-	  <input type="text" id="paddle" name="paddle">
-	</div>
-	<div>
-	  <button>Paddle</button>
-	</div>
-	</form>
-	<img src="/tap.png"></img>
-	</body></html>`))
+	_, err := w.Write([]byte(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>That's a Paddl</title>
+    <style>
+        :root {
+          --bg-color: #fdfdfd;
+          --text-main: #1a1a1a;
+          --accent: #333;
+          --spacing: 2rem;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: var(--bg-color);
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          color: var(--text-main);
+        }
+
+        .container {
+          text-align: center;
+          padding: var(--spacing);
+        }
+
+        .headline {
+          font-size: 3rem;
+          margin-bottom: 0.5rem;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+        }
+
+        .subtext {
+          font-size: 1.2rem;
+          color: #666;
+          margin-bottom: 2rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .hero-img {
+          max-width: 75%;
+          height: auto;
+          transition: transform 0.3s ease;
+          cursor: pointer;
+        }
+
+        .hero-img:hover {
+          transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1 class="headline">What deserves a paddlin'?</h1>
+        <form action="/paddle" method="post">
+        <div>
+          <input type="text" id="paddle" name="paddle">
+        </div>
+        <div>
+          <button>Paddle</button>
+        </div>
+        <div class="image-container">
+            <img src="/tap.png" alt="Tap" class="hero-img">
+        </div>
+    </main>
+</body>
+</html>`))
 
 	if err != nil {
 		log.Println("error writing HTTP response: ", err)

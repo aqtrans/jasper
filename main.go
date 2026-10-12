@@ -511,6 +511,16 @@ func tapDirect(w http.ResponseWriter, r *http.Request) {
 	serveContent(w, "assets/tap.png")
 }
 
+// For uptime monitoring
+func pingHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err := w.Write([]byte(`ok`))
+	if err != nil {
+		log.Println("error writing HTTP response: ", err)
+	}
+}
+
 func main() {
 
 	// Simple version info:
@@ -528,6 +538,7 @@ func main() {
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc("/paddle/{text}", drawHandler)
 	mux.HandleFunc("/paddle", formPost)
+	mux.HandleFunc("/ping", pingHandler)
 	mux.HandleFunc("/tap.png", tapDirect)
 	mux.HandleFunc("/favicon.ico", faviconHandler)
 	mux.HandleFunc("/favicon.png", faviconHandler)

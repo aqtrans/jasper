@@ -8,6 +8,7 @@ package main
 import (
 	"embed"
 	"errors"
+	"flag"
 	"image"
 	"image/draw"
 	"image/png"
@@ -15,16 +16,11 @@ import (
 	"math"
 	"net/http"
 	"regexp"
-	"time"
+	"runtime/debug"
 
-	//"git.jba.io/go/jasper/vfs"
-	"github.com/dimfeld/httptreemux/v5"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 
-	//"github.com/shurcooL/httpfs/vfsutil"
-	"github.com/go-chi/httprate"
-	_ "github.com/tevjef/go-runtime-metrics/expvar"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -43,7 +39,8 @@ func sanitizeInput(s string) (string, error) {
 }
 
 func drawHandler(w http.ResponseWriter, r *http.Request) {
-	ptext := httptreemux.ContextParams(r.Context())["text"]
+	//ptext := httptreemux.ContextParams(r.Context())["text"]
+	ptext := r.PathValue("text")
 
 	// Do not allow long words
 	if len(ptext) > 200 {
@@ -61,10 +58,8 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	// Add a question mark to the end of given text
 	text := sanitizedText + "?"
 	title := "That's a Paddlin'"
-	//log.Println(text)
 
 	reader, err := assetsfs.Open("assets/tap.png")
-	//reader, err := vfs.VFS.Open("tap.png")
 	if err != nil {
 		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
 		log.Println(err)
@@ -83,7 +78,6 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	draw.Draw(newimage, newimage.Bounds(), originalimage, image.Point{0, 0}, draw.Src)
 
 	fontFile, err := assetsfs.ReadFile("assets/impact.ttf")
-	//fontFile, err := vfsutil.ReadFile(vfs.VFS, "impact.ttf")
 	if err != nil {
 		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
 		log.Println("Error loading impact.ttf", err)
@@ -149,15 +143,14 @@ func drawHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	d.DrawString(text)
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "image/png")
-
 	err = png.Encode(w, newimage)
 	if err != nil {
 		http.Error(w, "Unable to handle this request", http.StatusBadRequest)
 		log.Println(err)
 		return
 	}
+
+	w.Header().Set("Content-Type", "image/png")
 
 }
 
@@ -477,7 +470,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
                     var url = URL.createObjectURL(blob);
                     img.src = url;
                     img.alt = text + "? That's a paddlin'!";
-                    var canonicalUrl = window.location.origin + '/' + encodeURIComponent(text);
+                    var canonicalUrl = window.location.origin + '/paddle/' + encodeURIComponent(text);
                     showCopy(canonicalUrl);
                 }
             } catch (err) {
@@ -511,59 +504,39 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func formPost(w http.ResponseWriter, r *http.Request) {
 	//log.Println(r.FormValue("paddle"))
-	http.Redirect(w, r, "/"+r.FormValue("paddle"), http.StatusSeeOther)
+	http.Redirect(w, r, "/paddle/"+r.FormValue("paddle"), http.StatusSeeOther)
 }
 
 func tapDirect(w http.ResponseWriter, r *http.Request) {
 	serveContent(w, "assets/tap.png")
 }
 
-func statsHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = w.Write([]byte("<html><body>"))
-	if err != nil {
-		log.Println("error writing HTTP response: ", err)
-	}
-	_, err = w.Write([]byte("<table><thead>"))
-	if err != nil {
-		log.Println("error writing HTTP response: ", err)
-	}
-	_, err = w.Write([]byte("<tr><th>Title</th><th>Access Count</th></tr></thead><tbody>"))
-	if err != nil {
-		log.Println("error writing HTTP response: ", err)
-	}
-	_, err = w.Write([]byte("</tbody></table>"))
-	if err != nil {
-		log.Println("error writing HTTP response: ", err)
-	}
-	_, err = w.Write([]byte("</body></html>"))
-
-	if err != nil {
-		log.Println("error writing HTTP response: ", err)
-	}
-}
-
 func main() {
-	limit := httprate.LimitByIP(100, time.Minute)
 
-	r := httptreemux.NewContextMux()
-	r.UseHandler(limit)
-	r.GET("/_stats", statsHandler)
-	r.GET("/*text", drawHandler)
-	r.POST("/paddle", formPost)
-	r.GET("/tap.png", tapDirect)
-	r.GET("/", indexHandler)
-	http.HandleFunc("/favicon.ico", faviconHandler)
-	http.HandleFunc("/favicon.png", faviconHandler)
-	http.HandleFunc("/robots.txt", http.NotFound)
-	http.HandleFunc("/blog", http.NotFound)
-	http.HandleFunc("/wp-login.php", http.NotFound)
-	http.Handle("/", r)
+	// Simple version info:
+	versionFlag := flag.Bool("version", false, "version")
+	flag.Parse()
+
+	if *versionFlag {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+			log.Println("Version", "info", info.Main.Version)
+		}
+		return
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", indexHandler)
+	mux.HandleFunc("/paddle/{text}", drawHandler)
+	mux.HandleFunc("/paddle", formPost)
+	mux.HandleFunc("/tap.png", tapDirect)
+	mux.HandleFunc("/favicon.ico", faviconHandler)
+	mux.HandleFunc("/favicon.png", faviconHandler)
+	mux.HandleFunc("/robots.txt", http.NotFound)
+	mux.HandleFunc("/blog", http.NotFound)
+	mux.HandleFunc("/wp-login.php", http.NotFound)
 
 	log.Println("Now listening on 127.0.0.1:8002")
-	err := http.ListenAndServe("127.0.0.1:8002", nil)
+	err := http.ListenAndServe("127.0.0.1:8002", mux)
 	if err != nil {
 		log.Fatalln("error listening ")
 	}
